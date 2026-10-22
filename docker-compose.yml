@@ -1,0 +1,48 @@
+version: '3.8'
+
+# ====================================================
+# INFRASTRUCTURE RESEAU ET SERVICES - KEYCE LAB
+# Auteur : Nodem Nodem Luca Evans
+# ====================================================
+
+networks:
+  frontend-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  backend-network:
+    driver: bridge
+    internal: true # Isolation stricte du réseau base de données
+
+volumes:
+  web-data:
+  db-data:
+
+services:
+  # 1. Reverse Proxy & Serveur Web (Exposé)
+  webserver:
+    image: nginx:alpine
+    container_name: luca-nginx-web
+    restart: always
+    ports:
+      - "8080:80"
+    networks:
+      - frontend-network
+    volumes:
+      - web-data:/usr/share/nginx/html
+
+  # 2. Base de Données Sécurisée (Isolée du réseau public)
+  database:
+    image: postgres:15-alpine
+    container_name: luca-db-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: keyce_db
+      POSTGRES_USER: luca_admin
+      POSTGRES_PASSWORD: SecureKeycePassword2026
+    networks:
+      - backend-network
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      
